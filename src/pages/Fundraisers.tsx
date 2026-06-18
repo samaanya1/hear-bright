@@ -31,9 +31,14 @@ function getYouTubeEmbedUrl(url: string): string | null {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
+function isDirectVideo(url: string) {
+  return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || url.includes("supabase.co/storage");
+}
+
 function MediaBlock({ image_url, video_url }: { image_url: string | null; video_url: string | null }) {
   if (!image_url && !video_url) return null;
   const embedUrl = video_url ? getYouTubeEmbedUrl(video_url) : null;
+  const directVideo = video_url && isDirectVideo(video_url);
   return (
     <div className="mb-5 overflow-hidden rounded-2xl bg-muted">
       {image_url && !video_url && (
@@ -47,7 +52,10 @@ function MediaBlock({ image_url, video_url }: { image_url: string | null; video_
           allowFullScreen
         />
       )}
-      {video_url && !embedUrl && image_url && (
+      {video_url && directVideo && (
+        <video src={video_url} controls className="h-44 w-full object-cover" />
+      )}
+      {video_url && !embedUrl && !directVideo && image_url && (
         <img src={image_url} alt="Fundraiser" className="h-44 w-full object-cover" />
       )}
     </div>

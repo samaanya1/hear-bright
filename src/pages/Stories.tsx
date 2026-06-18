@@ -2,6 +2,7 @@ import { PageHero } from "@/components/PageHero";
 import { useQuery } from "@tanstack/react-query";
 import { Heart, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 type Story = {
   id: string;
@@ -15,6 +16,88 @@ type Story = {
 function getYouTubeEmbedUrl(url: string): string | null {
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
+
+function isDirectVideo(url: string) {
+  return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || url.includes("supabase.co/storage");
+}
+
+const PREVIEW_LENGTH = 180;
+
+function StoryCard({ s }: { s: Story }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = s.story.length > PREVIEW_LENGTH;
+  const displayText = expanded || !needsTruncation ? s.story : s.story.slice(0, PREVIEW_LENGTH).trimEnd() + "…";
+
+  const embedUrl = s.video_url ? getYouTubeEmbedUrl(s.video_url) : null;
+  const directVideo = s.video_url ? isDirectVideo(s.video_url) : false;
+  const hasMedia = !!(s.video_url || s.image_url);
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft transition-smooth hover:shadow-elegant">
+
+      {/* Media — full width, tall */}
+      {hasMedia && (
+        <div className="relative bg-muted">
+          {s.video_url && embedUrl && (
+            <iframe
+              src={embedUrl}
+              className="aspect-video w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+          {s.video_url && directVideo && (
+            <video src={s.video_url} controls className="aspect-video w-full object-cover" />
+          )}
+          {!s.video_url && s.image_url && (
+            <img src={s.image_url} alt={s.name} className="aspect-video w-full object-cover" />
+          )}
+
+          {/* Caption overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-5 py-4">
+            <p className="font-serif text-lg text-white">{s.name}</p>
+            {s.location && (
+              <p className="flex items-center gap-1 text-xs text-white/80">
+                <MapPin className="h-3 w-3" /> {s.location}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="p-6">
+        {/* Header (shown only when no media) */}
+        {!hasMedia && (
+          <div className="mb-4 flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-soft font-serif text-xl text-primary">
+              {s.name?.[0]?.toUpperCase()}
+            </div>
+            <div>
+              <p className="font-serif text-xl">{s.name}</p>
+              {s.location && (
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> {s.location}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Story text */}
+        <p className="leading-relaxed text-muted-foreground">{displayText}</p>
+
+        {needsTruncation && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="mt-3 text-sm font-medium text-accent hover:underline underline-offset-2"
+          >
+            {expanded ? "Show less" : "See more"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 const Stories = () => {
@@ -64,57 +147,7 @@ const Stories = () => {
 
         {!isLoading && !isError && data.length > 0 && (
           <div className="grid gap-8 md:grid-cols-2">
-            {data.map((s) => (
-              <div
-                key={s.id}
-                className="rounded-2xl border border-border bg-card p-8 shadow-soft transition-smooth hover:-translate-y-1 hover:shadow-elegant"
-              >
-                <div className="flex items-center gap-4">
-                  {s.image_url ? (
-                    <img
-                      src={s.image_url}
-                      alt={s.name}
-                      className="h-14 w-14 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary-soft font-serif text-2xl text-primary">
-                      {s.name?.[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-serif text-xl">{s.name}</p>
-                    {s.location && (
-                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" /> {s.location}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <p className="mt-5 leading-relaxed text-muted-foreground">{s.story}</p>
-                {s.video_url && (() => {
-                  const embedUrl = getYouTubeEmbedUrl(s.video_url!);
-                  return embedUrl ? (
-                    <div className="mt-5 overflow-hidden rounded-xl">
-                      <iframe
-                        src={embedUrl}
-                        className="h-48 w-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : (
-                    <a
-                      href={s.video_url!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-block text-sm text-accent underline underline-offset-2"
-                    >
-                      Watch video →
-                    </a>
-                  );
-                })()}
-              </div>
-            ))}
+            {data.map((s) => <StoryCard key={s.id} s={s} />)}
           </div>
         )}
       </section>

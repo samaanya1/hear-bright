@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,84 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, LogOut, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Plus, LogOut, Loader2, Upload, X } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+
+// ─── Media Upload ─────────────────────────────────────────────────────────────
+
+type MediaUploadProps = {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  accept?: string;
+  placeholder?: string;
+};
+
+const MediaUpload = ({ label, value, onChange, accept = "video/*,image/*", placeholder = "https://..." }: MediaUploadProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const isUploaded = value && value.includes("supabase.co/storage");
+  const isVideo = accept.includes("video");
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("media").upload(path, file);
+    if (error) { toast.error(error.message); setUploading(false); return; }
+    const { data } = supabase.storage.from("media").getPublicUrl(path);
+    onChange(data.publicUrl);
+    setUploading(false);
+    toast.success("Uploaded!");
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+
+      {/* Preview */}
+      {isUploaded && (
+        <div className="relative overflow-hidden rounded-xl border border-border bg-muted">
+          {isVideo
+            ? <video src={value} controls className="max-h-40 w-full object-cover" />
+            : <img src={value} alt="" className="max-h-40 w-full object-cover" />}
+          <button type="button" onClick={() => onChange("")}
+            className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white hover:bg-black/70">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {/* Upload zone (shown when empty) */}
+      {!value && (
+        <button type="button" disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 py-6 text-muted-foreground transition hover:border-accent hover:bg-muted/70 disabled:opacity-50">
+          {uploading
+            ? <><Loader2 className="h-5 w-5 animate-spin" /><span className="text-xs">Uploading…</span></>
+            : <><Upload className="h-5 w-5" /><span className="text-xs">Click to upload from laptop</span></>}
+        </button>
+      )}
+
+      {/* URL input (always shown) */}
+      {!isUploaded && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">or paste URL</span>
+          <Input value={value} onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder} className="flex-1 text-sm" />
+          {value && (
+            <Button type="button" variant="ghost" size="icon" onClick={() => onChange("")}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <input ref={inputRef} type="file" accept={accept} className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+    </div>
+  );
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -178,10 +254,12 @@ const FundraisersSection = () => {
               <Textarea rows={4} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required /></div>
             <div><Label>Goal (₹)</Label>
               <Input type="number" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} required /></div>
-            <div><Label>Photo URL (optional)</Label>
-              <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." /></div>
-            <div><Label>Video URL (optional — YouTube)</Label>
-              <Input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} placeholder="https://youtube.com/watch?v=..." /></div>
+            <MediaUpload label="Photo (optional)" value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              accept="image/*" placeholder="https://... or upload from laptop" />
+            <MediaUpload label="Video (optional)" value={form.video_url}
+              onChange={(url) => setForm({ ...form, video_url: url })}
+              accept="video/*" placeholder="https://youtube.com/... or upload from laptop" />
             <Button type="submit" className="w-full" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : dialog.item ? "Save changes" : "Add fundraiser"}
             </Button>
@@ -293,8 +371,9 @@ const WebinarsSection = () => {
               <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div><Label>Registration Link (optional)</Label>
               <Input value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
-            <div><Label>Banner Image URL (optional)</Label>
-              <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." /></div>
+            <MediaUpload label="Banner Image (optional)" value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              accept="image/*" placeholder="https://... or upload from laptop" />
             <Button type="submit" className="w-full" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : dialog.item ? "Save changes" : "Add webinar"}
             </Button>
@@ -400,10 +479,12 @@ const StoriesSection = () => {
               <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="City, State" /></div>
             <div><Label>Story</Label>
               <Textarea rows={5} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required /></div>
-            <div><Label>Photo URL (optional)</Label>
-              <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." /></div>
-            <div><Label>Video URL (optional — YouTube)</Label>
-              <Input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} placeholder="https://youtube.com/watch?v=..." /></div>
+            <MediaUpload label="Photo (optional)" value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              accept="image/*" placeholder="https://... or upload from laptop" />
+            <MediaUpload label="Video (optional)" value={form.video_url}
+              onChange={(url) => setForm({ ...form, video_url: url })}
+              accept="video/*" placeholder="https://youtube.com/... or upload from laptop" />
             <Button type="submit" className="w-full" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : dialog.item ? "Save changes" : "Add story"}
             </Button>
