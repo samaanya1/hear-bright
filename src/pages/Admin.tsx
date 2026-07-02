@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, LogOut, Loader2, Upload, X } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+import { Head } from "vite-react-ssg";
 
 // ─── Media Upload ─────────────────────────────────────────────────────────────
 
@@ -122,6 +123,10 @@ const LoginScreen = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Head>
+        <title>Admin — Samaanya Foundation</title>
+        <meta name="robots" content="noindex" />
+      </Head>
       <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-8 shadow-soft">
         <h1 className="font-serif text-3xl">Admin</h1>
         <p className="mt-1 text-sm text-muted-foreground">Samaanya Foundation</p>
@@ -518,6 +523,10 @@ const Admin = () => {
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
+        <Head>
+          <title>Admin — Samaanya Foundation</title>
+          <meta name="robots" content="noindex" />
+        </Head>
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>
     );
@@ -527,6 +536,10 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Head>
+        <title>Admin — Samaanya Foundation</title>
+        <meta name="robots" content="noindex" />
+      </Head>
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
         <div>
           <h1 className="font-serif text-2xl">Admin Panel</h1>

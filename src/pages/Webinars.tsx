@@ -1,5 +1,8 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { useQuery } from "@tanstack/react-query";
+import { useLoaderData } from "react-router-dom";
 import { CalendarDays, ExternalLink, Mic, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,21 +17,34 @@ type Webinar = {
   image_url: string | null;
 };
 
+async function fetchWebinars() {
+  const { data, error } = await supabase
+    .from("webinars")
+    .select("*")
+    .order("date", { ascending: true, nullsFirst: false });
+  if (error) throw error;
+  return data as Webinar[];
+}
+
+export async function loader() {
+  try {
+    return await fetchWebinars();
+  } catch {
+    return null;
+  }
+}
+
 const Webinars = () => {
+  const loaderData = useLoaderData() as Webinar[] | null;
   const { data = [], isLoading, isError } = useQuery({
     queryKey: ["webinars"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("webinars")
-        .select("*")
-        .order("date", { ascending: true, nullsFirst: false });
-      if (error) throw error;
-      return data as Webinar[];
-    },
+    queryFn: fetchWebinars,
+    initialData: loaderData ?? undefined,
   });
 
   return (
     <>
+      <Seo {...seoRoutes["/webinars"]} />
       <PageHero
         eyebrow="Webinars"
         title="Learn. Connect. Grow."

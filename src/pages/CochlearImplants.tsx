@@ -1,4 +1,6 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Check, X } from "lucide-react";
 import audiologistImg from "@/assets/audiologist.jpg";
 
@@ -12,6 +14,7 @@ const myths = [
 const CochlearImplants = () => {
   return (
     <>
+      <Seo {...seoRoutes["/cochlear-implants"]} />
       <PageHero
         eyebrow="Cochlear implants"
         title="A clear, honest guide."

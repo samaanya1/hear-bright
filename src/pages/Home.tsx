@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Heart, Users, BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import heroImg from "@/assets/hero-family.jpg";
 import communityImg from "@/assets/community.jpg";
 import joyImg from "@/assets/child-ci.jpg";
@@ -9,6 +11,8 @@ import leaf from "@/assets/leaf.png";
 const Home = () => {
   return (
     <>
+      <Seo {...seoRoutes["/"]} />
+
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-12 md:py-24">

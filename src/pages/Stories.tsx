@@ -1,5 +1,8 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { useQuery } from "@tanstack/react-query";
+import { useLoaderData } from "react-router-dom";
 import { Heart, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -100,21 +103,34 @@ function StoryCard({ s }: { s: Story }) {
   );
 }
 
+async function fetchStories() {
+  const { data, error } = await supabase
+    .from("stories")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as Story[];
+}
+
+export async function loader() {
+  try {
+    return await fetchStories();
+  } catch {
+    return null;
+  }
+}
+
 const Stories = () => {
+  const loaderData = useLoaderData() as Story[] | null;
   const { data = [], isLoading, isError } = useQuery({
     queryKey: ["stories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stories")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as Story[];
-    },
+    queryFn: fetchStories,
+    initialData: loaderData ?? undefined,
   });
 
   return (
     <>
+      <Seo {...seoRoutes["/stories"]} />
       <PageHero
         eyebrow="Stories"
         title="Real families. Real journeys."

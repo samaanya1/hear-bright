@@ -1,4 +1,7 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Users, Sparkles, Globe, CalendarDays, ExternalLink } from "lucide-react";
 import workshopImg from "@/assets/workshop.jpg";
@@ -32,6 +35,8 @@ const programs = [
 ];
 
 const Programs = () => {
+  const location = useLocation();
+  const seo = seoRoutes[location.pathname] ?? seoRoutes["/programs"];
   const calendarSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(
     GOOGLE_CALENDAR_ID,
   )}&ctz=Asia%2FKolkata&mode=AGENDA&showTitle=0&showPrint=0&showCalendars=0&showTabs=0`;
@@ -41,6 +46,7 @@ const Programs = () => {
 
   return (
     <>
+      <Seo {...seo} />
       <PageHero
         eyebrow="Programs & workshops"
         title="Practical work, rooted in real lives."

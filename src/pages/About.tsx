@@ -1,4 +1,6 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import samayPhoto from "@/assets/team-samay.png";
@@ -48,6 +50,7 @@ const team = [
 const About = () => {
   return (
     <>
+      <Seo {...seoRoutes["/about"]} />
       <PageHero
         eyebrow="About Samaanya Foundation"
         title="Born from lived experience. Built for everyone."

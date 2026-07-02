@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Button } from "@/components/ui/button";
 import { Heart, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -48,6 +50,7 @@ const Donate = () => {
 
   return (
     <>
+      <Seo {...seoRoutes["/donate"]} />
       <PageHero
         eyebrow="Donate"
         title="Your support builds the road."

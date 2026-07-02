@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLoaderData } from "react-router-dom";
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +68,23 @@ function MediaBlock({ image_url, video_url }: { image_url: string | null; video_
 const inr = (n: number) =>
   new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
 
+async function fetchFundraisers() {
+  const { data, error } = await supabase
+    .from("fundraisers")
+    .select("*")
+    .order("created_at");
+  if (error) throw error;
+  return data as Fundraiser[];
+}
+
+export async function loader() {
+  try {
+    return await fetchFundraisers();
+  } catch {
+    return null;
+  }
+}
+
 const Fundraisers = () => {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Fundraiser | null>(null);
@@ -73,16 +93,11 @@ const Fundraisers = () => {
   const [loading, setLoading] = useState(false);
   const { openCheckout } = useRazorpay();
 
+  const loaderData = useLoaderData() as Fundraiser[] | null;
   const { data: list = [], isLoading } = useQuery({
     queryKey: ["fundraisers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fundraisers")
-        .select("*")
-        .order("created_at");
-      if (error) throw error;
-      return data as Fundraiser[];
-    },
+    queryFn: fetchFundraisers,
+    initialData: loaderData ?? undefined,
   });
 
   const totals = useMemo(
@@ -140,6 +155,7 @@ const Fundraisers = () => {
 
   return (
     <>
+      <Seo {...seoRoutes["/fundraisers"]} />
       <PageHero
         eyebrow="Fundraisers"
         title="Real families. Real needs. Real progress."

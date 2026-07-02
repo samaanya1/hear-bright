@@ -1,9 +1,12 @@
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Ear, Clock, Heart, Users } from "lucide-react";
 
 const Understanding = () => {
   return (
     <>
+      <Seo {...seoRoutes["/understanding"]} />
       <PageHero
         eyebrow="Understanding hearing disability"
         title="Knowing more, fearing less."

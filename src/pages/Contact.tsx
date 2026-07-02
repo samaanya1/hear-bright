@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { Seo } from "@/components/Seo";
+import { seoRoutes } from "@/lib/seo-routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +57,7 @@ const Contact = () => {
 
   return (
     <>
+      <Seo {...seoRoutes["/contact"]} />
       <PageHero
         eyebrow="Contact / Get help"
         title="We're here to listen."
