@@ -99,6 +99,7 @@ export type Database = {
         Row: {
           id: string
           name: string
+          age: number | null
           location: string | null
           story: string
           image_url: string | null
@@ -108,6 +109,7 @@ export type Database = {
         Insert: {
           id?: string
           name: string
+          age?: number | null
           location?: string | null
           story: string
           image_url?: string | null
@@ -117,6 +119,7 @@ export type Database = {
         Update: {
           id?: string
           name?: string
+          age?: number | null
           location?: string | null
           story?: string
           image_url?: string | null

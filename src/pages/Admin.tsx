@@ -102,7 +102,7 @@ type Webinar = {
 };
 
 type Story = {
-  id: string; name: string; location: string | null;
+  id: string; name: string; age: number | null; location: string | null;
   story: string; image_url: string | null; video_url: string | null;
 };
 
@@ -391,7 +391,7 @@ const WebinarsSection = () => {
 
 // ─── Stories ──────────────────────────────────────────────────────────────────
 
-const emptyS = { name: "", location: "", story: "", image_url: "", video_url: "" };
+const emptyS = { name: "", age: "", location: "", story: "", image_url: "", video_url: "" };
 
 const StoriesSection = () => {
   const qc = useQueryClient();
@@ -411,7 +411,7 @@ const StoriesSection = () => {
   const openAdd = () => { setForm(emptyS); setDialog({ open: true, item: null }); };
   const openEdit = (item: Story) => {
     setForm({
-      name: item.name, location: item.location ?? "", story: item.story,
+      name: item.name, age: item.age != null ? String(item.age) : "", location: item.location ?? "", story: item.story,
       image_url: item.image_url ?? "", video_url: item.video_url ?? "",
     });
     setDialog({ open: true, item });
@@ -421,7 +421,7 @@ const StoriesSection = () => {
     e.preventDefault();
     setSaving(true);
     const payload = {
-      name: form.name, location: form.location || null, story: form.story,
+      name: form.name, age: form.age ? Number(form.age) : null, location: form.location || null, story: form.story,
       image_url: form.image_url || null, video_url: form.video_url || null,
     };
     const { error } = dialog.item
@@ -457,7 +457,7 @@ const StoriesSection = () => {
         {items.map((item) => (
           <div key={item.id} className="flex items-center justify-between rounded-2xl border border-border bg-card px-5 py-4">
             <div>
-              <p className="font-medium">{item.name}</p>
+              <p className="font-medium">{item.name}{item.age != null ? `, ${item.age}` : ""}</p>
               <p className="text-xs text-muted-foreground">{item.location ?? "No location"}</p>
             </div>
             <div className="flex gap-2">
@@ -478,8 +478,12 @@ const StoriesSection = () => {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={save} className="space-y-4">
-            <div><Label>Name</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Name</Label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+              <div><Label>Age (optional)</Label>
+                <Input type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></div>
+            </div>
             <div><Label>Location (optional)</Label>
               <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="City, State" /></div>
             <div><Label>Story</Label>
