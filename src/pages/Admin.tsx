@@ -400,24 +400,38 @@ const StoriesSection = () => {
   const [form, setForm] = useState(emptyS);
   const [saving, setSaving] = useState(false);
   const storyRef = useRef<HTMLTextAreaElement>(null);
+  // Tapping the B/U button (outside the textarea) collapses the selection on mobile before
+  // a click handler can read it, so we track the last real selection continuously instead.
+  const lastSelection = useRef<{ start: number; end: number } | null>(null);
+
+  const trackSelection = () => {
+    const el = storyRef.current;
+    if (!el) return;
+    if (el.selectionStart !== el.selectionEnd) {
+      lastSelection.current = { start: el.selectionStart, end: el.selectionEnd };
+    }
+  };
 
   const wrapSelection = (marker: string) => {
     const el = storyRef.current;
-    if (!el) return;
-    const { selectionStart, selectionEnd, value } = el;
-    if (selectionStart === selectionEnd) {
-      toast.error("Select some text first, then click Bold/Underline.");
+    const sel = lastSelection.current;
+    if (!el || !sel || sel.start === sel.end) {
+      toast.error("Select some text first, then tap Bold/Underline.");
       return;
     }
-    const selected = value.slice(selectionStart, selectionEnd);
-    // Clicking again on already-formatted text removes the markers instead of stacking them.
+    const { start, end } = sel;
+    const value = form.story;
+    const selected = value.slice(start, end);
+    // Tapping again on already-formatted text removes the markers instead of stacking them.
     const isWrapped = selected.startsWith(marker) && selected.endsWith(marker) && selected.length >= marker.length * 2;
     const replacement = isWrapped ? selected.slice(marker.length, -marker.length) : marker + selected + marker;
-    const next = value.slice(0, selectionStart) + replacement + value.slice(selectionEnd);
+    const next = value.slice(0, start) + replacement + value.slice(end);
     setForm((f) => ({ ...f, story: next }));
+    const newEnd = start + replacement.length;
+    lastSelection.current = { start, end: newEnd };
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(selectionStart, selectionStart + replacement.length);
+      el.setSelectionRange(start, newEnd);
     });
   };
 
@@ -511,16 +525,26 @@ const StoriesSection = () => {
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <Label>Story</Label>
-                <div className="flex items-center gap-1">
-                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 font-bold"
-                    onMouseDown={(e) => e.preventDefault()} onClick={() => wrapSelection("**")}>B</Button>
-                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 underline"
-                    onMouseDown={(e) => e.preventDefault()} onClick={() => wrapSelection("__")}>U</Button>
+                <div className="flex items-center gap-1.5">
+                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 text-base font-bold"
+                    onMouseDown={(e) => e.preventDefault()} onTouchStart={(e) => e.preventDefault()} onClick={() => wrapSelection("**")}>B</Button>
+                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 text-base underline"
+                    onMouseDown={(e) => e.preventDefault()} onTouchStart={(e) => e.preventDefault()} onClick={() => wrapSelection("__")}>U</Button>
                 </div>
               </div>
-              <Textarea ref={storyRef} rows={5} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required />
+              <Textarea
+                ref={storyRef}
+                rows={5}
+                value={form.story}
+                onChange={(e) => setForm({ ...form, story: e.target.value })}
+                onSelect={trackSelection}
+                onKeyUp={trackSelection}
+                onMouseUp={trackSelection}
+                onTouchEnd={trackSelection}
+                required
+              />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Select text, then click B / U to format (click again on formatted text to undo it). Leave a blank line between paragraphs.
+                Select text with your finger, then tap B / U to format (tap again on formatted text to undo it). Leave a blank line between paragraphs.
               </p>
               {form.story && (
                 <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/40 p-4">
