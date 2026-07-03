@@ -398,6 +398,24 @@ const StoriesSection = () => {
   const [dialog, setDialog] = useState<{ open: boolean; item: Story | null }>({ open: false, item: null });
   const [form, setForm] = useState(emptyS);
   const [saving, setSaving] = useState(false);
+  const storyRef = useRef<HTMLTextAreaElement>(null);
+
+  const wrapSelection = (marker: string) => {
+    const el = storyRef.current;
+    if (!el) return;
+    const { selectionStart, selectionEnd, value } = el;
+    if (selectionStart === selectionEnd) {
+      toast.error("Select some text first, then click Bold/Underline.");
+      return;
+    }
+    const selected = value.slice(selectionStart, selectionEnd);
+    const next = value.slice(0, selectionStart) + marker + selected + marker + value.slice(selectionEnd);
+    setForm((f) => ({ ...f, story: next }));
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(selectionStart + marker.length, selectionEnd + marker.length);
+    });
+  };
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["admin-stories"],
@@ -486,8 +504,19 @@ const StoriesSection = () => {
             </div>
             <div><Label>Location (optional)</Label>
               <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="City, State" /></div>
-            <div><Label>Story</Label>
-              <Textarea rows={5} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required /></div>
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <Label>Story</Label>
+                <div className="flex items-center gap-1">
+                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 font-bold" onClick={() => wrapSelection("**")}>B</Button>
+                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 underline" onClick={() => wrapSelection("__")}>U</Button>
+                </div>
+              </div>
+              <Textarea ref={storyRef} rows={5} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Select text and click B / U to format. Leave a blank line between paragraphs.
+              </p>
+            </div>
             <MediaUpload label="Photo (optional)" value={form.image_url}
               onChange={(url) => setForm({ ...form, image_url: url })}
               accept="image/*" placeholder="https://... or upload from laptop" />

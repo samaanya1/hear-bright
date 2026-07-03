@@ -26,12 +26,33 @@ function isDirectVideo(url: string) {
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || url.includes("supabase.co/storage");
 }
 
+// Renders **bold** and __underline__ markers written in the admin story editor.
+function renderFormattedText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("__") && part.endsWith("__")) return <u key={i}>{part.slice(2, -2)}</u>;
+    return part;
+  });
+}
+
+// Truncates without cutting a **bold**/__underline__ marker in half.
+function truncateText(text: string, length: number) {
+  if (text.length <= length) return text;
+  let truncated = text.slice(0, length);
+  for (const marker of ["**", "__"]) {
+    if (truncated.split(marker).length % 2 === 0) {
+      truncated = truncated.slice(0, truncated.lastIndexOf(marker));
+    }
+  }
+  return truncated.trimEnd() + "…";
+}
+
 const PREVIEW_LENGTH = 160;
 
 function StoryCard({ s }: { s: Story }) {
   const [expanded, setExpanded] = useState(false);
   const needsTruncation = s.story.length > PREVIEW_LENGTH;
-  const displayText = expanded || !needsTruncation ? s.story : s.story.slice(0, PREVIEW_LENGTH).trimEnd() + "…";
+  const displayText = expanded || !needsTruncation ? s.story : truncateText(s.story, PREVIEW_LENGTH);
 
   const embedUrl = s.video_url ? getYouTubeEmbedUrl(s.video_url) : null;
   const directVideo = s.video_url ? isDirectVideo(s.video_url) : false;
@@ -78,8 +99,10 @@ function StoryCard({ s }: { s: Story }) {
           </div>
         </div>
 
-        {/* Story text */}
-        <p className="text-justify leading-relaxed text-muted-foreground [text-align-last:left]">{displayText}</p>
+        {/* Story text — preserves paragraph breaks and bold/underline markup from the admin editor */}
+        <p className="whitespace-pre-line text-justify leading-relaxed text-muted-foreground [text-align-last:left]">
+          {renderFormattedText(displayText)}
+        </p>
 
         {needsTruncation && (
           <button
