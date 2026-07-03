@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Plus, LogOut, Loader2, Upload, X } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { Head } from "vite-react-ssg";
+import { renderFormattedText } from "@/lib/richText";
 
 // ─── Media Upload ─────────────────────────────────────────────────────────────
 
@@ -409,11 +410,14 @@ const StoriesSection = () => {
       return;
     }
     const selected = value.slice(selectionStart, selectionEnd);
-    const next = value.slice(0, selectionStart) + marker + selected + marker + value.slice(selectionEnd);
+    // Clicking again on already-formatted text removes the markers instead of stacking them.
+    const isWrapped = selected.startsWith(marker) && selected.endsWith(marker) && selected.length >= marker.length * 2;
+    const replacement = isWrapped ? selected.slice(marker.length, -marker.length) : marker + selected + marker;
+    const next = value.slice(0, selectionStart) + replacement + value.slice(selectionEnd);
     setForm((f) => ({ ...f, story: next }));
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(selectionStart + marker.length, selectionEnd + marker.length);
+      el.setSelectionRange(selectionStart, selectionStart + replacement.length);
     });
   };
 
@@ -508,14 +512,22 @@ const StoriesSection = () => {
               <div className="mb-1.5 flex items-center justify-between">
                 <Label>Story</Label>
                 <div className="flex items-center gap-1">
-                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 font-bold" onClick={() => wrapSelection("**")}>B</Button>
-                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 underline" onClick={() => wrapSelection("__")}>U</Button>
+                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 font-bold"
+                    onMouseDown={(e) => e.preventDefault()} onClick={() => wrapSelection("**")}>B</Button>
+                  <Button type="button" variant="outline" size="sm" className="h-7 w-7 p-0 underline"
+                    onMouseDown={(e) => e.preventDefault()} onClick={() => wrapSelection("__")}>U</Button>
                 </div>
               </div>
               <Textarea ref={storyRef} rows={5} value={form.story} onChange={(e) => setForm({ ...form, story: e.target.value })} required />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Select text and click B / U to format. Leave a blank line between paragraphs.
+                Select text, then click B / U to format (click again on formatted text to undo it). Leave a blank line between paragraphs.
               </p>
+              {form.story && (
+                <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/40 p-4">
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Preview</p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">{renderFormattedText(form.story)}</p>
+                </div>
+              )}
             </div>
             <MediaUpload label="Photo (optional)" value={form.image_url}
               onChange={(url) => setForm({ ...form, image_url: url })}

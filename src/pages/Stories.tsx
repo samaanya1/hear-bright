@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLoaderData } from "react-router-dom";
 import { Heart, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { renderFormattedText, truncateText } from "@/lib/richText";
 import { useState } from "react";
 
 type Story = {
@@ -24,27 +25,6 @@ function getYouTubeEmbedUrl(url: string): string | null {
 
 function isDirectVideo(url: string) {
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url) || url.includes("supabase.co/storage");
-}
-
-// Renders **bold** and __underline__ markers written in the admin story editor.
-function renderFormattedText(text: string) {
-  return text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g).map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={i}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("__") && part.endsWith("__")) return <u key={i}>{part.slice(2, -2)}</u>;
-    return part;
-  });
-}
-
-// Truncates without cutting a **bold**/__underline__ marker in half.
-function truncateText(text: string, length: number) {
-  if (text.length <= length) return text;
-  let truncated = text.slice(0, length);
-  for (const marker of ["**", "__"]) {
-    if (truncated.split(marker).length % 2 === 0) {
-      truncated = truncated.slice(0, truncated.lastIndexOf(marker));
-    }
-  }
-  return truncated.trimEnd() + "…";
 }
 
 const PREVIEW_LENGTH = 160;
