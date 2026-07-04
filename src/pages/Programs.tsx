@@ -9,7 +9,7 @@ import workshopImg from "@/assets/workshop.jpg";
 // Replace with your foundation's public Google Calendar ID.
 // Find it: Google Calendar → Settings → (your calendar) → "Integrate calendar" → Calendar ID.
 // Make sure the calendar's access permissions are set to "Make available to public".
-const GOOGLE_CALENDAR_ID = "hello@samaanyafoundation.org";
+const GOOGLE_CALENDAR_ID = "info@samaanyafoundation.com";
 
 const programs = [
   {

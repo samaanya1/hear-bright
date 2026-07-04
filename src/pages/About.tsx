@@ -54,7 +54,7 @@ const About = () => {
       <PageHero
         eyebrow="About Samaanya Foundation"
         title="Born from lived experience. Built for everyone."
-        description="Samaanya means 'equal' — and that idea sits at the heart of everything we do."
+        description="Samaanya (सामान्य) means 'equal' — and that idea sits at the heart of everything we do."
       />
 
       {/* MISSION / VISION */}
