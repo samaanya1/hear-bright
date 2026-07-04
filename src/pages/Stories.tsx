@@ -87,7 +87,7 @@ function StoryCard({ s }: { s: Story }) {
         {needsTruncation && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-3 text-sm font-medium text-accent hover:underline underline-offset-2"
+            className="mt-3 rounded text-sm font-medium text-accent hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {expanded ? "Show less" : "Read more"}
           </button>

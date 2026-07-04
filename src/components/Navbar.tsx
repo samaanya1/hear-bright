@@ -38,7 +38,7 @@ export const Navbar = () => {
               to={l.to}
               className={({ isActive }) =>
                 cn(
-                  "text-sm font-medium transition-smooth hover:text-accent",
+                  "rounded text-sm font-medium transition-smooth hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   isActive ? "text-accent" : "text-foreground/75",
                 )
               }
@@ -56,7 +56,7 @@ export const Navbar = () => {
 
         <button
           aria-label="Toggle menu"
-          className="rounded-md p-2 text-foreground lg:hidden"
+          className="rounded-md p-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

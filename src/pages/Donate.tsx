@@ -68,7 +68,7 @@ const Donate = () => {
                     key={f}
                     onClick={() => setFrequency(f)}
                     className={cn(
-                      "flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-smooth capitalize",
+                      "flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-smooth capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       frequency === f ? "bg-background text-foreground shadow-soft" : "text-muted-foreground",
                     )}
                   >
@@ -86,7 +86,7 @@ const Donate = () => {
                       key={p}
                       onClick={() => { setAmount(p); setCustom(""); }}
                       className={cn(
-                        "rounded-2xl border-2 px-4 py-4 font-serif text-xl transition-smooth",
+                        "rounded-2xl border-2 px-4 py-4 font-serif text-xl transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         amount === p && !custom
                           ? "border-accent bg-accent-soft text-accent"
                           : "border-border bg-background hover:border-accent/40",

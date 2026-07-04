@@ -68,7 +68,7 @@ const Understanding = () => {
               Reach out to us — we'll help you understand your next steps, connect you with
               other families, and point you to professionals you can trust.
             </p>
-            <a href="/contact" className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition-smooth hover:bg-accent/90">Talk to us</a>
+            <a href="/contact" className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition-smooth hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Talk to us</a>
           </div>
         </div>
       </section>
